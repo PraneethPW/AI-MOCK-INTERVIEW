@@ -44,6 +44,7 @@ create table if not exists reports (
   strengths jsonb default '[]'::jsonb,
   risks jsonb default '[]'::jsonb,
   recommendation text not null,
+  analysis jsonb default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
 
@@ -51,6 +52,7 @@ alter table interviews add column if not exists job_description text default '';
 alter table interviews add column if not exists difficulty text not null default 'intermediate';
 alter table interviews add column if not exists questions jsonb default '[]'::jsonb;
 alter table interviews add column if not exists completed_at timestamptz;
+alter table reports add column if not exists analysis jsonb default '{}'::jsonb;
 `
 
 await pool.query(schema)

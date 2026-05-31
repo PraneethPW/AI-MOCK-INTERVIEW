@@ -1,6 +1,7 @@
 import { BookOpenCheck, BrainCircuit, CalendarDays, CheckCircle2, Flame, MessageSquareText, PlayCircle, Target, Trophy } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AnalysisGrid } from '../components/AnalysisGrid'
 import { api, type Interview, type Report } from '../lib/api'
 
 const drills = [
@@ -45,25 +46,25 @@ export function CoachPage() {
   const strengths = latestReport?.strengths?.length ? latestReport.strengths : ['Good communication foundation', 'Clear role intent', 'Solid technical direction']
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-lg bg-ink p-6 text-white shadow-glow sm:p-8">
+        <div className="shine-card rounded-lg bg-ink p-5 text-white shadow-glow sm:p-8">
           <p className="text-sm font-black uppercase tracking-[0.16em] text-mint">AI coach plan</p>
-          <h1 className="mt-3 text-4xl font-black leading-tight">Know exactly what to practice before the next interview.</h1>
+          <h1 className="page-title mt-3 text-3xl font-black leading-tight sm:text-4xl">Know exactly what to practice before the next interview.</h1>
           <p className="mt-4 max-w-3xl leading-7 text-white/70">
             This page turns interview reports into a focused prep roadmap: weak areas, drills, next practice rounds, and a clear readiness target.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link to="/interview" className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-black text-ink">
+            <Link to="/interview" className="neon-button inline-flex w-full items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-black sm:w-auto">
               <PlayCircle size={18} /> Start coached round
             </Link>
-            <Link to="/reports" className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-5 py-3 text-sm font-black text-white">
+            <Link to="/reports" className="ghost-button inline-flex w-full items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-black sm:w-auto">
               <BookOpenCheck size={18} /> Review reports
             </Link>
           </div>
         </div>
 
-        <div className="rounded-lg border border-black/5 bg-white p-6 shadow-card">
+        <div className="shine-card app-card shine-card rounded-lg p-5 sm:p-6">
           <p className="text-sm font-black uppercase tracking-[0.16em] text-slate-500">Readiness score</p>
           <div className="mt-5 flex items-end gap-3">
             <p className="text-6xl font-black">{avgScore || 72}</p>
@@ -79,7 +80,7 @@ export function CoachPage() {
       </section>
 
       <section className="grid gap-4 xl:grid-cols-3">
-        <article className="rounded-lg border border-black/5 bg-white p-6 shadow-card">
+        <article className="shine-card app-card shine-card rounded-lg p-5 sm:p-6">
           <div className="flex items-center gap-3">
             <Target className="text-coral" />
             <h2 className="text-xl font-black">Priority gaps</h2>
@@ -91,7 +92,7 @@ export function CoachPage() {
           </div>
         </article>
 
-        <article className="rounded-lg border border-black/5 bg-white p-6 shadow-card">
+        <article className="shine-card app-card shine-card rounded-lg p-5 sm:p-6">
           <div className="flex items-center gap-3">
             <Trophy className="text-amber" />
             <h2 className="text-xl font-black">Keep doing</h2>
@@ -103,7 +104,7 @@ export function CoachPage() {
           </div>
         </article>
 
-        <article className="rounded-lg border border-black/5 bg-white p-6 shadow-card">
+        <article className="shine-card app-card shine-card rounded-lg p-5 sm:p-6">
           <div className="flex items-center gap-3">
             <CalendarDays className="text-cyan" />
             <h2 className="text-xl font-black">7-day plan</h2>
@@ -118,25 +119,38 @@ export function CoachPage() {
         </article>
       </section>
 
-      <section className="rounded-lg border border-black/5 bg-white p-6 shadow-card">
+      <section className="space-y-4">
+        <div>
+          <p className="text-sm font-black uppercase tracking-[0.16em] text-coral">Mandatory analysis areas</p>
+          <h2 className="mt-2 text-2xl font-black">Track every required evaluation dimension</h2>
+        </div>
+        <AnalysisGrid
+          communicationSkills={latestReport?.analysis?.communicationSkills}
+          technicalKnowledge={latestReport?.analysis?.technicalKnowledge}
+          confidenceBehavior={latestReport?.analysis?.confidenceBehavior}
+          overallEvaluation={latestReport?.analysis?.overallEvaluation}
+        />
+      </section>
+
+      <section className="shine-card app-card shine-card rounded-lg p-5 sm:p-6">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <p className="text-sm font-black uppercase tracking-[0.16em] text-coral">Practice drills</p>
             <h2 className="mt-2 text-2xl font-black">Recommended next actions</h2>
           </div>
-          <span className="inline-flex items-center gap-2 rounded-lg bg-ink px-4 py-3 text-sm font-black text-white">
+          <span className="neon-button inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-black">
             <Flame size={18} /> {interviews.length || 0} rounds logged
           </span>
         </div>
 
         <div className="mt-6 grid gap-4 lg:grid-cols-3">
           {drills.map((drill) => (
-            <article key={drill.title} className="rounded-lg border border-black/5 bg-slate-50 p-5">
+            <article key={drill.title} className="shine-card app-card-muted shine-card rounded-lg p-5">
               <BrainCircuit className="text-ink" />
               <h3 className="mt-4 text-lg font-black">{drill.title}</h3>
               <p className="mt-2 text-sm font-bold text-coral">{drill.focus} • {drill.time}</p>
               <p className="mt-4 leading-7 text-slate-600">{drill.task}</p>
-              <button className="mt-5 inline-flex items-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-black text-ink">
+              <button className="ghost-button mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-black">
                 <MessageSquareText size={17} /> Add to next mock
               </button>
             </article>
@@ -146,3 +160,4 @@ export function CoachPage() {
     </div>
   )
 }
+

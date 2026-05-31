@@ -33,26 +33,26 @@ export function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
   }
 
   return (
-    <div className="mesh-bg grid min-h-screen place-items-center px-4 py-10">
-      <div className="grid w-full max-w-6xl overflow-hidden rounded-lg bg-white shadow-card lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="bg-ink p-8 text-white sm:p-10">
+    <div className="mesh-bg page-shell grid min-h-screen place-items-center px-3 py-6 sm:px-4 sm:py-10">
+      <div className="dark-glass grid w-full max-w-6xl overflow-hidden rounded-lg shadow-card lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="shine-card bg-ink p-6 text-white sm:p-10">
           <Link to="/" className="inline-flex items-center gap-3">
             <span className="grid h-11 w-11 place-items-center rounded-lg bg-white text-ink">
               <BrainCircuit size={23} />
             </span>
             <span className="text-lg font-black">VocaVision AI</span>
           </Link>
-          <h1 className="mt-16 text-4xl font-black leading-tight">{isSignup ? 'Create your interview workspace.' : 'Continue your preparation.'}</h1>
+          <h1 className="page-title mt-10 text-3xl font-black leading-tight sm:mt-16 sm:text-4xl">{isSignup ? 'Create your interview workspace.' : 'Continue your preparation.'}</h1>
           <p className="mt-5 leading-7 text-white/70">Your account connects to real interview sessions, OpenRouter question generation, answer scoring, and saved performance reports.</p>
           <div className="mt-10 rounded-lg border border-white/10 bg-white/10 p-5">
             <p className="text-sm font-bold text-mint">Functional flow</p>
             <p className="mt-3 text-2xl font-black">Login, create a role-based interview, answer questions, and generate a final report.</p>
           </div>
         </div>
-        <div className="p-8 sm:p-10">
+        <div className="p-5 sm:p-10">
           <div className="mx-auto max-w-md">
             <p className="text-sm font-black uppercase tracking-[0.18em] text-coral">{isSignup ? 'Sign up' : 'Login'}</p>
-            <h2 className="mt-3 text-3xl font-black">{isSignup ? 'Start a real session' : 'Open your dashboard'}</h2>
+            <h2 className="page-title mt-3 text-3xl font-black">{isSignup ? 'Start a real session' : 'Open your dashboard'}</h2>
             <form className="mt-8 space-y-4" onSubmit={submit}>
               {isSignup && (
                 <label className="block">
@@ -79,13 +79,13 @@ export function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
                 </span>
               </label>
               {error && <p className="rounded-lg bg-red-50 p-3 text-sm font-bold text-red-700">{error}</p>}
-              <button disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-lg bg-ink px-5 py-4 text-sm font-black text-white shadow-glow disabled:opacity-60">
+              <button disabled={loading} className="neon-button flex w-full items-center justify-center gap-2 rounded-lg px-5 py-4 text-sm font-black shadow-glow disabled:opacity-60">
                 {loading ? 'Working...' : isSignup ? 'Create account' : 'Login'} <ArrowRight size={18} />
               </button>
             </form>
             <p className="mt-6 text-center text-sm text-slate-600">
               {isSignup ? 'Already have an account?' : 'New here?'}{' '}
-              <Link className="font-black text-ink" to={isSignup ? '/login' : '/signup'}>{isSignup ? 'Login' : 'Create account'}</Link>
+              <Link className="font-black text-mint" to={isSignup ? '/login' : '/signup'}>{isSignup ? 'Login' : 'Create account'}</Link>
             </p>
           </div>
         </div>
@@ -93,3 +93,4 @@ export function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
     </div>
   )
 }
+

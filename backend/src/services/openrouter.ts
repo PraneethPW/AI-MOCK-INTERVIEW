@@ -149,10 +149,37 @@ export async function analyzeAnswer(payload: {
   visualSignals?: Record<string, unknown>
 }) {
   return openRouterJson(
-    'You are an expert technical interviewer. Score the candidate answer. Return strict JSON with fields: score number 0-100, strengths string[], risks string[], coaching string, hiringSignal string, followUpQuestion string, rubric object with clarity, depth, relevance, structure numbers 0-100.',
+    'You are an expert technical interviewer. Score the candidate answer. Return strict JSON with fields: score number 0-100, communicationSkills object, technicalKnowledge object, confidenceBehavior object, overallEvaluation object, strengths string[], risks string[], coaching string, hiringSignal string, followUpQuestion string. communicationSkills must include grammarAccuracy, vocabularyUsage, fluency, answerRelevance numbers 0-100 plus notes string. technicalKnowledge must include technicalKeywordMatching, conceptUnderstanding, problemSolvingAbility, responseCorrectness numbers 0-100 plus notes string. confidenceBehavior must include eyeContact, facialExpressions, speakingConfidence, bodyPosture numbers 0-100 plus notes string. overallEvaluation must include interviewScore number 0-100, strengthsIdentification string[], weaknessDetection string[], improvementRecommendations string[].',
     payload,
     {
       score: 86,
+      communicationSkills: {
+        grammarAccuracy: 88,
+        vocabularyUsage: 84,
+        fluency: 86,
+        answerRelevance: 90,
+        notes: 'Clear answer with relevant phrasing and only minor structure improvements needed.',
+      },
+      technicalKnowledge: {
+        technicalKeywordMatching: 87,
+        conceptUnderstanding: 84,
+        problemSolvingAbility: 86,
+        responseCorrectness: 85,
+        notes: 'Good technical direction with clear mention of architecture, API, database, and AI service separation.',
+      },
+      confidenceBehavior: {
+        eyeContact: Number(payload.visualSignals?.eyeContact || 86),
+        facialExpressions: Number(payload.visualSignals?.confidence || 85),
+        speakingConfidence: Number(payload.visualSignals?.confidence || 88),
+        bodyPosture: Number(payload.visualSignals?.posture || 84),
+        notes: 'Stable confidence signals with room to improve posture consistency and delivery energy.',
+      },
+      overallEvaluation: {
+        interviewScore: 86,
+        strengthsIdentification: ['Clear architecture split', 'Good explanation of backend and AI service responsibilities'],
+        weaknessDetection: ['Needs more production tradeoffs', 'Could quantify impact better'],
+        improvementRecommendations: ['Use concrete metrics', 'Explain alternatives before final choices', 'Close answers with measurable impact'],
+      },
       strengths: ['Clear architecture split', 'Good database and AI-service separation'],
       risks: ['Add more privacy details', 'Explain latency and fallback strategy'],
       coaching: 'Use a structured answer: context, architecture, tradeoffs, risks, and measurement.',
@@ -169,10 +196,37 @@ export async function buildInterviewReport(payload: {
   answers: Array<{ question: string; transcript: string; nlp_score: number; cv_score: number; feedback: unknown }>
 }) {
   return openRouterJson(
-    'You are a hiring panel lead. Build a final interview report. Return strict JSON with fields: summary string, strengths string[], risks string[], recommendation string, decision one of Strong shortlist|Shortlist|Needs practice|Reject, coachingPlan string[], roleFitScore number 0-100.',
+    'You are a hiring panel lead. Build a final interview report. Return strict JSON with fields: summary string, communicationSkills object, technicalKnowledge object, confidenceBehavior object, overallEvaluation object, strengths string[], risks string[], recommendation string, decision one of Strong shortlist|Shortlist|Needs practice|Reject, coachingPlan string[], roleFitScore number 0-100. communicationSkills must include grammarAccuracy, vocabularyUsage, fluency, answerRelevance numbers 0-100 plus notes string. technicalKnowledge must include technicalKeywordMatching, conceptUnderstanding, problemSolvingAbility, responseCorrectness numbers 0-100 plus notes string. confidenceBehavior must include eyeContact, facialExpressions, speakingConfidence, bodyPosture numbers 0-100 plus notes string. overallEvaluation must include interviewScore number 0-100, strengthsIdentification string[], weaknessDetection string[], improvementRecommendations string[].',
     payload,
     {
       summary: 'Candidate shows solid interview readiness with clear technical thinking and room to improve depth in tradeoff explanations.',
+      communicationSkills: {
+        grammarAccuracy: 88,
+        vocabularyUsage: 84,
+        fluency: 86,
+        answerRelevance: 89,
+        notes: 'Communication is clear and relevant, with opportunities to improve concise structuring.',
+      },
+      technicalKnowledge: {
+        technicalKeywordMatching: 86,
+        conceptUnderstanding: 84,
+        problemSolvingAbility: 85,
+        responseCorrectness: 83,
+        notes: 'Good technical foundation with a need for stronger correctness proof and deeper tradeoff analysis.',
+      },
+      confidenceBehavior: {
+        eyeContact: 86,
+        facialExpressions: 84,
+        speakingConfidence: 88,
+        bodyPosture: 82,
+        notes: 'Confident delivery signals overall; posture and visual engagement can be made more consistent.',
+      },
+      overallEvaluation: {
+        interviewScore: 84,
+        strengthsIdentification: ['Clear communication', 'Good architecture awareness'],
+        weaknessDetection: ['Needs more production examples', 'Could quantify impact better'],
+        improvementRecommendations: ['Use concrete metrics', 'Explain alternatives before final choices'],
+      },
       strengths: ['Clear communication', 'Good architecture awareness'],
       risks: ['Needs more production examples', 'Could quantify impact better'],
       recommendation: 'Shortlist with one focused technical follow-up round.',

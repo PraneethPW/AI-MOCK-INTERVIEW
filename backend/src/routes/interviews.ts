@@ -172,20 +172,21 @@ router.post('/:id/complete', async (req: AuthRequest, res) => {
 
   const report = await buildInterviewReport({ targetRole: interview.target_role, answers: answers.rows })
   const saved = await query(
-    `insert into reports (interview_id, summary, strengths, risks, recommendation)
-     values ($1, $2, $3, $4, $5) returning *`,
+    `insert into reports (interview_id, summary, strengths, risks, recommendation, analysis)
+     values ($1, $2, $3, $4, $5, $6) returning *`,
     [
       req.params.id,
       report.summary,
       JSON.stringify(report.strengths || []),
       JSON.stringify(report.risks || []),
       report.recommendation || report.decision || 'Review recommended',
+      JSON.stringify(report),
     ],
   )
 
   await query('update interviews set status = $1, completed_at = now(), overall_score = $2 where id = $3', [
     'completed',
-    Number(report.roleFitScore || 0),
+    Number(report.roleFitScore || report.overallEvaluation?.interviewScore || 0),
     req.params.id,
   ])
 

@@ -19,15 +19,16 @@ export function AppShell() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb] text-ink">
-      <aside className={`fixed inset-y-0 left-0 z-40 w-72 border-r border-black/5 bg-white/90 p-5 shadow-card backdrop-blur-xl transition-transform lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}>
+    <div className="mesh-bg min-h-screen text-white">
+      {open && <button aria-label="Close menu" className="fixed inset-0 z-40 bg-black/55 backdrop-blur-sm lg:hidden" onClick={() => setOpen(false)} />}
+      <aside className={`dark-glass fixed inset-y-0 left-0 z-50 flex w-[min(86vw,18rem)] flex-col border-r border-white/10 p-4 transition-transform duration-300 sm:p-5 lg:w-72 lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}>
         <Link to="/" className="flex items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded-lg bg-ink text-mint">
+          <span className="grid h-11 w-11 place-items-center rounded-lg bg-mint text-ink shadow-glow">
             <Sparkles size={22} />
           </span>
           <span>
             <span className="block text-lg font-black">VocaVision AI</span>
-            <span className="block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Interview OS</span>
+            <span className="block text-xs font-semibold uppercase tracking-[0.2em] text-white/50">Interview OS</span>
           </span>
         </Link>
 
@@ -38,7 +39,7 @@ export function AppShell() {
               to={item.href}
               onClick={() => setOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold transition ${isActive ? 'bg-ink text-white shadow-glow' : 'text-slate-600 hover:bg-slate-100 hover:text-ink'}`
+                `shine-card flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold transition ${isActive ? 'bg-white/15 text-white shadow-glow' : 'text-white/65 hover:bg-white/10 hover:text-white'}`
               }
             >
               <item.icon size={19} />
@@ -47,7 +48,7 @@ export function AppShell() {
           ))}
         </nav>
 
-        <div className="absolute bottom-5 left-5 right-5 rounded-lg bg-ink p-4 text-white">
+        <div className="shine-card mt-auto rounded-lg border border-white/10 bg-white/10 p-4 text-white">
           <p className="text-sm font-bold">AI credits</p>
           <p className="mt-1 text-xs text-white/65">OpenRouter usage this month</p>
           <div className="mt-4 h-2 rounded-full bg-white/10">
@@ -56,37 +57,36 @@ export function AppShell() {
         </div>
       </aside>
 
-      <div className="lg:pl-72">
-        <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-black/5 bg-white/75 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <button className="grid h-10 w-10 place-items-center rounded-lg border border-black/10 bg-white lg:hidden" onClick={() => setOpen(true)} aria-label="Open menu">
-              <Menu size={20} />
-            </button>
-            <div className="hidden items-center gap-3 rounded-lg border border-black/10 bg-white px-4 py-2.5 md:flex">
-              <Search size={18} className="text-slate-400" />
-              <input className="w-72 border-0 bg-transparent text-sm outline-none" placeholder="Search candidates, roles, reports" />
+      <header className="dark-glass fixed left-0 right-0 top-0 z-30 flex h-16 items-center justify-between border-b border-white/10 px-3 sm:h-20 sm:px-6 lg:left-72 lg:px-8">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <button className="ghost-button grid h-10 w-10 place-items-center rounded-lg lg:hidden" onClick={() => setOpen(true)} aria-label="Open menu">
+            <Menu size={20} />
+          </button>
+          <div className="hidden items-center gap-3 rounded-lg border border-white/10 bg-white/10 px-4 py-2.5 md:flex">
+            <Search size={18} className="text-white/45" />
+            <input className="w-72 border-0 bg-transparent text-sm text-white outline-none placeholder:text-white/40" placeholder="Search candidates, roles, reports" />
+          </div>
+        </div>
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <button className="ghost-button grid h-10 w-10 place-items-center rounded-lg" aria-label="Notifications">
+            <Bell size={18} />
+          </button>
+          {user && (
+            <div className="hidden min-w-0 text-right sm:block">
+              <p className="truncate text-sm font-black">{user.name}</p>
+              <p className="truncate text-xs text-white/50">{user.email}</p>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <button className="grid h-10 w-10 place-items-center rounded-lg border border-black/10 bg-white" aria-label="Notifications">
-              <Bell size={18} />
-            </button>
-            {user && (
-              <div className="hidden text-right sm:block">
-                <p className="text-sm font-black">{user.name}</p>
-                <p className="text-xs text-slate-500">{user.email}</p>
-              </div>
-            )}
-            <button onClick={logout} className="hidden items-center gap-2 rounded-lg bg-ink px-4 py-2.5 text-sm font-bold text-white sm:flex">
-              <LogOut size={17} />
-              Exit
-            </button>
-          </div>
-        </header>
-        <main className="px-4 py-6 sm:px-6 lg:px-8">
-          <Outlet />
-        </main>
-      </div>
+          )}
+          <button onClick={logout} className="neon-button hidden items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold sm:flex">
+            <LogOut size={17} />
+            Exit
+          </button>
+        </div>
+      </header>
+
+      <main className="min-h-screen px-3 pb-8 pt-20 sm:px-6 sm:pt-24 lg:pl-[19.5rem] lg:pr-8">
+        <Outlet />
+      </main>
     </div>
   )
 }

@@ -42,6 +42,10 @@ export type Answer = {
   feedback: {
     aiResult?: {
       score: number
+      communicationSkills?: AnalysisGroup
+      technicalKnowledge?: AnalysisGroup
+      confidenceBehavior?: AnalysisGroup
+      overallEvaluation?: OverallEvaluation
       strengths: string[]
       risks: string[]
       coaching: string
@@ -63,4 +67,33 @@ export type Report = {
   risks: string[]
   recommendation: string
   created_at: string
+  analysis?: {
+    communicationSkills?: AnalysisGroup
+    technicalKnowledge?: AnalysisGroup
+    confidenceBehavior?: AnalysisGroup
+    overallEvaluation?: OverallEvaluation
+  }
+}
+
+export type AnalysisGroup = {
+  grammarAccuracy?: number
+  vocabularyUsage?: number
+  fluency?: number
+  answerRelevance?: number
+  technicalKeywordMatching?: number
+  conceptUnderstanding?: number
+  problemSolvingAbility?: number
+  responseCorrectness?: number
+  eyeContact?: number
+  facialExpressions?: number
+  speakingConfidence?: number
+  bodyPosture?: number
+  notes?: string
+}
+
+export type OverallEvaluation = {
+  interviewScore?: number
+  strengthsIdentification?: string[]
+  weaknessDetection?: string[]
+  improvementRecommendations?: string[]
 }
