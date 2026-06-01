@@ -19,7 +19,7 @@ type SpeechRecognitionLike = {
   lang: string
   onresult: ((event: SpeechRecognitionEventLike) => void) | null
   onend: (() => void) | null
-  onerror: (() => void) | null
+  onerror: ((event?: { error?: string }) => void) | null
   start: () => void
   stop: () => void
   abort: () => void
@@ -59,6 +59,10 @@ export function InterviewPage() {
   const chatEndRef = useRef<HTMLDivElement | null>(null)
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
   const finalTranscriptRef = useRef('')
+  const shouldKeepListeningRef = useRef(false)
+  const restartTimerRef = useRef<number | null>(null)
+  const speakingRef = useRef(false)
+  const loadingRef = useRef(false)
   const [step, setStep] = useState<Step>('setup')
   const [loading, setLoading] = useState(false)
   const [listening, setListening] = useState(false)
@@ -94,6 +98,14 @@ export function InterviewPage() {
   }, [answers])
 
   useEffect(() => {
+    speakingRef.current = speaking
+  }, [speaking])
+
+  useEffect(() => {
+    loadingRef.current = loading
+  }, [loading])
+
+  useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, latestFeedback])
 
@@ -111,6 +123,8 @@ export function InterviewPage() {
       const stream = video?.srcObject as MediaStream | null
       stream?.getTracks().forEach((track) => track.stop())
       window.speechSynthesis?.cancel()
+      shouldKeepListeningRef.current = false
+      if (restartTimerRef.current) window.clearTimeout(restartTimerRef.current)
       recognitionRef.current?.abort()
     }
   }, [step])
@@ -138,11 +152,38 @@ export function InterviewPage() {
       }
       setInterimTranscript(interim)
     }
-    recognition.onend = () => setListening(false)
-    recognition.onerror = () => setListening(false)
+    recognition.onend = () => {
+      if (!shouldKeepListeningRef.current || speakingRef.current || loadingRef.current) {
+        setListening(false)
+        return
+      }
+
+      setListening(true)
+      if (restartTimerRef.current) window.clearTimeout(restartTimerRef.current)
+      restartTimerRef.current = window.setTimeout(() => {
+        if (!shouldKeepListeningRef.current || !recognitionRef.current || speakingRef.current || loadingRef.current) return
+        try {
+          recognitionRef.current.start()
+        } catch {
+          setListening(true)
+        }
+      }, 350)
+    }
+    recognition.onerror = (event) => {
+      const recoverable = !event?.error || ['no-speech', 'aborted', 'network'].includes(event.error)
+      if (!recoverable) {
+        shouldKeepListeningRef.current = false
+        setListening(false)
+        if (event?.error === 'not-allowed' || event?.error === 'service-not-allowed') {
+          setMediaError('Microphone permission is blocked. Allow microphone access to answer by voice.')
+        }
+      }
+    }
     recognitionRef.current = recognition
 
     return () => {
+      shouldKeepListeningRef.current = false
+      if (restartTimerRef.current) window.clearTimeout(restartTimerRef.current)
       recognition.abort()
       recognitionRef.current = null
     }
@@ -150,6 +191,8 @@ export function InterviewPage() {
 
   const speak = (text: string) => {
     if (!window.speechSynthesis || !text) return
+    shouldKeepListeningRef.current = false
+    if (restartTimerRef.current) window.clearTimeout(restartTimerRef.current)
     recognitionRef.current?.stop()
     setListening(false)
     setSpeaking(true)
@@ -166,6 +209,8 @@ export function InterviewPage() {
   const startListening = () => {
     if (!voiceReady || !recognitionRef.current) return
     setInterimTranscript('')
+    shouldKeepListeningRef.current = true
+    if (restartTimerRef.current) window.clearTimeout(restartTimerRef.current)
     try {
       recognitionRef.current.start()
       setListening(true)
@@ -175,11 +220,15 @@ export function InterviewPage() {
   }
 
   const stopListening = () => {
+    shouldKeepListeningRef.current = false
+    if (restartTimerRef.current) window.clearTimeout(restartTimerRef.current)
     recognitionRef.current?.stop()
     setListening(false)
   }
 
   const resetCurrentAnswer = () => {
+    shouldKeepListeningRef.current = false
+    if (restartTimerRef.current) window.clearTimeout(restartTimerRef.current)
     recognitionRef.current?.abort()
     finalTranscriptRef.current = ''
     setAnswerText('')
