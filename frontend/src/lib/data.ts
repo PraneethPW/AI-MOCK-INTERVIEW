@@ -5,7 +5,9 @@ import {
   Camera,
   GraduationCap,
   FileText,
+  FileSearch,
   Gauge,
+  Map,
   Mic2,
   ShieldCheck,
   Sparkles,
@@ -35,6 +37,16 @@ export const features = [
     title: 'Recruiter-grade reports',
     text: 'Generate crisp candidate reports with strengths, risks, coaching notes, and hiring recommendation.',
   },
+  {
+    icon: FileSearch,
+    title: 'Resume analysis',
+    text: 'Upload or paste a resume to score ATS fit, grammar quality, missing keywords, and correction suggestions.',
+  },
+  {
+    icon: Map,
+    title: 'AI learning roadmap',
+    text: 'Generate a clear preparation roadmap for MERN, full stack, DSA, system design, AI, or any career goal.',
+  },
 ]
 
 export const navItems = [
@@ -43,6 +55,8 @@ export const navItems = [
   { label: 'Question Bank', href: '/library', icon: BriefcaseBusiness },
   { label: 'Reports', href: '/reports', icon: BarChart3 },
   { label: 'AI Coach', href: '/coach', icon: GraduationCap },
+  { label: 'Resume Analyzer', href: '/resume', icon: FileSearch },
+  { label: 'AI Roadmap', href: '/roadmap', icon: Map },
 ]
 
 export const metrics = [

@@ -195,7 +195,7 @@ export function LandingPage() {
               <p className="text-sm font-black uppercase tracking-[0.18em] text-coral">Product modules</p>
               <h2 className="page-title mt-3 text-4xl font-black">A complete interview operating system, not a one-page toy.</h2>
             </div>
-            <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {features.map((feature, index) => (
                 <article key={feature.title} className="shine-card group relative overflow-hidden rounded-lg border border-white/10 bg-white/10 p-6 shadow-card transition hover:-translate-y-1 hover:shadow-glow">
                   <div className={`absolute right-0 top-0 h-16 w-16 rounded-bl-lg ${['bg-mint/20', 'bg-cyan/20', 'bg-coral/20', 'bg-amber/20'][index]}`} />

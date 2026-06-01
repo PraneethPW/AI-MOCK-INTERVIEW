@@ -5,6 +5,7 @@ import { ZodError } from 'zod'
 import { authRouter } from './routes/auth.js'
 import { interviewsRouter } from './routes/interviews.js'
 import { reportsRouter } from './routes/reports.js'
+import { careerRouter } from './routes/career.js'
 
 const app = express()
 const port = Number(process.env.PORT || 5000)
@@ -38,6 +39,7 @@ app.get('/health', (_req, res) => {
 app.use('/api/auth', authRouter)
 app.use('/api/interviews', interviewsRouter)
 app.use('/api/reports', reportsRouter)
+app.use('/api/career', careerRouter)
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   if (err instanceof ZodError) {

@@ -236,3 +236,77 @@ export async function buildInterviewReport(payload: {
     },
   )
 }
+
+export async function analyzeResume(payload: {
+  fileName: string
+  resumeText: string
+  targetRole?: string
+}) {
+  return openRouterJson(
+    'You are an expert resume reviewer for technical hiring. Analyze the resume for the target role. Return strict JSON with: resumeScore number 0-100, atsScore number 0-100, grammarScore number 0-100, roleFitScore number 0-100, summary string, strengths string[], corrections array of {"issue":"...","fix":"...","severity":"low|medium|high"}, grammarMistakes array of {"text":"...","suggestion":"...","reason":"..."}, missingKeywords string[], recommendedRewrite string[], actionPlan string[].',
+    payload,
+    {
+      resumeScore: 78,
+      atsScore: 74,
+      grammarScore: 82,
+      roleFitScore: 76,
+      summary: 'Resume has a solid technical base but needs stronger measurable impact, cleaner grammar, and tighter alignment with the target role.',
+      strengths: ['Clear project experience', 'Relevant full-stack keywords', 'Good education and skills structure'],
+      corrections: [
+        { issue: 'Project bullets describe work but not measurable impact.', fix: 'Add metrics such as latency reduced, users served, or time saved.', severity: 'high' },
+        { issue: 'Skills section is broad.', fix: 'Group skills by Frontend, Backend, Database, AI, Tools.', severity: 'medium' },
+      ],
+      grammarMistakes: [
+        { text: 'Worked on project which is used...', suggestion: 'Built a project that is used...', reason: 'More direct and professional phrasing.' },
+      ],
+      missingKeywords: ['REST APIs', 'PostgreSQL', 'Authentication', 'Deployment', 'Testing'],
+      recommendedRewrite: ['Built a full-stack interview platform using React, Express, PostgreSQL, and OpenRouter AI with JWT authentication and AI-generated candidate reports.'],
+      actionPlan: ['Add quantified impact to each project', 'Move strongest project to the top', 'Add deployment links and GitHub links'],
+    },
+  )
+}
+
+export async function generateRoadmap(payload: {
+  goal: string
+  currentLevel: string
+  timeline: string
+  hoursPerWeek: number
+}) {
+  return openRouterJson(
+    'You are an expert career mentor. Generate a clear ideal preparation roadmap. Return strict JSON with: title string, overview string, roadmapScore number 0-100, phases array of {"phase":"...","duration":"...","goal":"...","topics":["..."],"projects":["..."],"resources":["..."],"checkpoints":["..."]}, weeklyPlan array of {"week":"...","focus":"...","tasks":["..."]}, milestones string[], mistakesToAvoid string[], finalProject string, interviewPrep string[].',
+    payload,
+    {
+      title: `${payload.goal} Roadmap`,
+      overview: 'A practical roadmap that starts with fundamentals, builds projects, adds production skills, and ends with interview preparation.',
+      roadmapScore: 90,
+      phases: [
+        {
+          phase: 'Foundation',
+          duration: '2 weeks',
+          goal: 'Understand the core building blocks.',
+          topics: ['HTML/CSS/JavaScript fundamentals', 'Git and GitHub', 'TypeScript basics'],
+          projects: ['Personal portfolio', 'Todo app with local storage'],
+          resources: ['MDN Web Docs', 'TypeScript Handbook'],
+          checkpoints: ['Explain async JS', 'Build reusable components'],
+        },
+        {
+          phase: 'MERN + Postgres Build',
+          duration: '4 weeks',
+          goal: 'Build production-style full-stack apps.',
+          topics: ['React routing', 'Express APIs', 'Postgres schema design', 'JWT authentication'],
+          projects: ['Auth dashboard', 'AI interview app'],
+          resources: ['React docs', 'Postgres docs', 'Express docs'],
+          checkpoints: ['Deploy frontend and backend', 'Connect database securely'],
+        },
+      ],
+      weeklyPlan: [
+        { week: 'Week 1', focus: 'Fundamentals', tasks: ['Revise JavaScript', 'Build UI components', 'Practice Git'] },
+        { week: 'Week 2', focus: 'Frontend depth', tasks: ['React Router', 'Forms', 'API integration'] },
+      ],
+      milestones: ['Build 3 deployed projects', 'Write clean README files', 'Complete 5 mock interviews'],
+      mistakesToAvoid: ['Learning without building', 'Skipping deployment', 'Ignoring database design'],
+      finalProject: 'Build a full-stack AI-powered platform with auth, database, dashboard, and AI-generated reports.',
+      interviewPrep: ['Explain every project architecture', 'Practice system design basics', 'Prepare behavioral stories'],
+    },
+  )
+}
