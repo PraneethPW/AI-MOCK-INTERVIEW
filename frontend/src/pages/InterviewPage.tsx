@@ -61,6 +61,7 @@ export function InterviewPage() {
   const finalTranscriptRef = useRef('')
   const shouldKeepListeningRef = useRef(false)
   const restartTimerRef = useRef<number | null>(null)
+  const lastListenStartRef = useRef(0)
   const speakingRef = useRef(false)
   const loadingRef = useRef(false)
   const [step, setStep] = useState<Step>('setup')
@@ -112,12 +113,12 @@ export function InterviewPage() {
   useEffect(() => {
     if (step !== 'active') return
     const video = videoRef.current
-    navigator.mediaDevices?.getUserMedia({ video: true, audio: true })
+    navigator.mediaDevices?.getUserMedia({ video: true, audio: false })
       .then((stream) => {
         setMediaError('')
         if (video) video.srcObject = stream
       })
-      .catch(() => setMediaError('Camera or microphone permission is blocked. Allow access to run a voice interview.'))
+      .catch(() => setMediaError('Camera permission is blocked. Allow camera access to run the visual interview view.'))
 
     return () => {
       const stream = video?.srcObject as MediaStream | null
@@ -153,6 +154,7 @@ export function InterviewPage() {
       setInterimTranscript(interim)
     }
     recognition.onend = () => {
+      const endedTooFast = Date.now() - lastListenStartRef.current < 1800
       if (!shouldKeepListeningRef.current || speakingRef.current || loadingRef.current) {
         setListening(false)
         return
@@ -163,11 +165,12 @@ export function InterviewPage() {
       restartTimerRef.current = window.setTimeout(() => {
         if (!shouldKeepListeningRef.current || !recognitionRef.current || speakingRef.current || loadingRef.current) return
         try {
+          lastListenStartRef.current = Date.now()
           recognitionRef.current.start()
         } catch {
           setListening(true)
         }
-      }, 350)
+      }, endedTooFast ? 900 : 450)
     }
     recognition.onerror = (event) => {
       const recoverable = !event?.error || ['no-speech', 'aborted', 'network'].includes(event.error)
@@ -176,6 +179,8 @@ export function InterviewPage() {
         setListening(false)
         if (event?.error === 'not-allowed' || event?.error === 'service-not-allowed') {
           setMediaError('Microphone permission is blocked. Allow microphone access to answer by voice.')
+        } else if (event?.error === 'audio-capture') {
+          setMediaError('Microphone capture failed. Close other apps using the mic and tap Start answering again.')
         }
       }
     }
@@ -212,6 +217,7 @@ export function InterviewPage() {
     shouldKeepListeningRef.current = true
     if (restartTimerRef.current) window.clearTimeout(restartTimerRef.current)
     try {
+      lastListenStartRef.current = Date.now()
       recognitionRef.current.start()
       setListening(true)
     } catch {
