@@ -36,6 +36,22 @@ export function ResumePage() {
   const [error, setError] = useState('')
   const [result, setResult] = useState<ResumeResult | null>(null)
 
+  const selectFile = (selectedFile?: File) => {
+    setError('')
+    if (!selectedFile) {
+      setFile(null)
+      return
+    }
+
+    if (!selectedFile.name.toLowerCase().endsWith('.docx')) {
+      setFile(null)
+      setError('Only .docx resume files are allowed. PDF, DOC, TXT, and other formats are blocked.')
+      return
+    }
+
+    setFile(selectedFile)
+  }
+
   const submit = async (event: FormEvent) => {
     event.preventDefault()
     setLoading(true)
@@ -62,7 +78,7 @@ export function ResumePage() {
         <div className="rounded-lg bg-ink p-6 text-white shadow-glow sm:p-8">
           <p className="text-sm font-black uppercase tracking-[0.16em] text-mint">Resume analysis</p>
           <h1 className="mt-3 text-4xl font-black leading-tight">Upload your resume and get a hiring-ready score.</h1>
-          <p className="mt-4 leading-7 text-white/70">Scores ATS strength, role fit, grammar quality, missing keywords, corrections, and rewritten bullet suggestions.</p>
+          <p className="mt-4 leading-7 text-white/70">Only .docx resumes are accepted for accurate analysis. Scores ATS strength, role fit, grammar quality, missing keywords, corrections, and rewritten bullet suggestions.</p>
         </div>
 
         <form onSubmit={submit} className="rounded-lg border border-white/10 bg-white/10 p-6 text-white shadow-glow backdrop-blur">
@@ -75,13 +91,13 @@ export function ResumePage() {
               <span className="text-sm font-bold text-white/70">Upload resume</span>
               <label className="mt-2 flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-white/20 bg-ink/70 px-4 py-3 font-bold text-white/70">
                 <UploadCloud size={19} />
-                <span className="truncate">{file?.name || 'PDF/DOC/TXT or paste below'}</span>
-                <input className="hidden" type="file" accept=".txt,.pdf,.doc,.docx" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+                <span className="truncate">{file?.name || 'DOCX only'}</span>
+                <input className="hidden" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={(e) => selectFile(e.target.files?.[0])} />
               </label>
             </label>
           </div>
           <label className="mt-4 block">
-            <span className="text-sm font-bold text-white/70">Paste resume text for best accuracy</span>
+            <span className="text-sm font-bold text-white/70">Optional extracted text / notes</span>
             <textarea className="mt-2 min-h-44 w-full rounded-lg border border-white/10 bg-ink/70 px-4 py-3 leading-7 text-white outline-none placeholder:text-white/35" value={resumeText} onChange={(e) => setResumeText(e.target.value)} placeholder="Paste resume content here..." />
           </label>
           {error && <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm font-bold text-red-700">{error}</p>}

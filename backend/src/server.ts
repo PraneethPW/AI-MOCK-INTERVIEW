@@ -45,6 +45,9 @@ app.use((err: unknown, _req: express.Request, res: express.Response, _next: expr
   if (err instanceof ZodError) {
     return res.status(400).json({ message: 'Validation failed', issues: err.issues })
   }
+  if (err instanceof Error && err.message.includes('Only .docx')) {
+    return res.status(400).json({ message: err.message })
+  }
   console.error(err)
   res.status(500).json({ message: 'Something went wrong' })
 })
