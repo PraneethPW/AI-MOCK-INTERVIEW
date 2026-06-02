@@ -386,47 +386,102 @@ export async function analyzeResume(payload: {
   )
 }
 
+function parseTimelineToWeeks(timeline: string) {
+  const text = timeline.toLowerCase()
+  const value = Number(text.match(/\d+/)?.[0] || 8)
+
+  if (text.includes('day')) return Math.max(1, Math.ceil(value / 7))
+  if (text.includes('month')) return Math.max(1, value * 4)
+  if (text.includes('year')) return Math.max(1, value * 52)
+  return Math.max(1, value)
+}
+
+function buildRoadmapFallback(payload: {
+  goal: string
+  currentLevel: string
+  timeline: string
+  hoursPerWeek: number
+}) {
+  const totalWeeks = parseTimelineToWeeks(payload.timeline)
+  const visibleWeeks = Math.min(totalWeeks, 24)
+  const phaseCount = totalWeeks <= 4 ? totalWeeks : totalWeeks <= 12 ? 4 : 6
+  const phaseLength = Math.max(1, Math.ceil(totalWeeks / phaseCount))
+  const focusCycle = [
+    'Foundation and prerequisites',
+    'Core concepts and guided practice',
+    'Hands-on project building',
+    'Advanced implementation and production skills',
+    'Portfolio polish and documentation',
+    'Interview preparation and revision',
+  ]
+
+  const phases = Array.from({ length: phaseCount }, (_, index) => {
+    const startWeek = index * phaseLength + 1
+    const endWeek = Math.min((index + 1) * phaseLength, totalWeeks)
+    const focus = focusCycle[index] || `Focused practice ${index + 1}`
+
+    return {
+      phase: `Phase ${index + 1}: ${focus}`,
+      duration: `Week ${startWeek}${endWeek > startWeek ? `-${endWeek}` : ''}`,
+      goal: `Move from ${payload.currentLevel} toward ${payload.goal} through ${focus.toLowerCase()}.`,
+      topics: [
+        `${payload.goal} fundamentals`,
+        'Practical implementation patterns',
+        'Common mistakes and debugging',
+        'Real-world use cases',
+      ],
+      projects: [
+        index === phaseCount - 1 ? `Capstone ${payload.goal} project` : `${payload.goal} mini project ${index + 1}`,
+        'Document learnings and decisions',
+      ],
+      resources: ['Official documentation', 'High-quality project tutorials', 'Practice problems', 'Mock interview notes'],
+      checkpoints: [
+        `Complete week ${startWeek}${endWeek > startWeek ? `-${endWeek}` : ''} tasks`,
+        'Explain concepts without notes',
+        'Push work to GitHub or portfolio',
+      ],
+    }
+  })
+
+  const weeklyPlan = Array.from({ length: visibleWeeks }, (_, index) => ({
+    week: `Week ${index + 1}`,
+    focus: focusCycle[Math.min(Math.floor((index / visibleWeeks) * focusCycle.length), focusCycle.length - 1)],
+    tasks: [
+      `Study ${payload.goal} for ${Math.max(1, Math.floor(payload.hoursPerWeek * 0.35))} hours`,
+      `Build or improve one ${payload.goal} feature`,
+      'Write notes and revise weak areas',
+      index >= visibleWeeks - 3 ? 'Practice interview explanation' : 'Complete one checkpoint',
+    ],
+  }))
+
+  return {
+    title: `${payload.goal} Roadmap`,
+    overview: `A ${payload.timeline} preparation route for ${payload.goal}, designed for ${payload.currentLevel} with about ${payload.hoursPerWeek} hours per week. ${totalWeeks > visibleWeeks ? `Showing the first ${visibleWeeks} weekly steps and full phase coverage for ${totalWeeks} weeks.` : ''}`,
+    roadmapScore: 90,
+    phases,
+    weeklyPlan,
+    milestones: [
+      `Finish all ${totalWeeks} weeks of planned learning`,
+      'Build at least 2 strong portfolio projects',
+      'Prepare project explanations for interviews',
+      'Complete mock interviews and revise weak areas',
+    ],
+    mistakesToAvoid: ['Learning without building', 'Skipping documentation', 'Ignoring fundamentals', 'Not revising weak topics weekly'],
+    finalProject: `Build and deploy a complete ${payload.goal} capstone project with documentation, tests, and interview-ready architecture notes.`,
+    interviewPrep: ['Explain every project architecture', 'Prepare common questions', 'Practice tradeoff explanations', 'Review mistakes from mock interviews'],
+  }
+}
+
 export async function generateRoadmap(payload: {
   goal: string
   currentLevel: string
   timeline: string
   hoursPerWeek: number
 }) {
+  const dynamicFallback = buildRoadmapFallback(payload)
   return openRouterJson(
-    'You are an expert career mentor. Generate a clear ideal preparation roadmap. Return strict JSON with: title string, overview string, roadmapScore number 0-100, phases array of {"phase":"...","duration":"...","goal":"...","topics":["..."],"projects":["..."],"resources":["..."],"checkpoints":["..."]}, weeklyPlan array of {"week":"...","focus":"...","tasks":["..."]}, milestones string[], mistakesToAvoid string[], finalProject string, interviewPrep string[].',
+    `You are an expert career mentor. Generate a clear ideal preparation roadmap for the exact requested timeline: ${payload.timeline}. If the user asks for days, convert into daily/weekly steps. If weeks, include that many weekly plan items when reasonable. If months, convert to weeks and structure phases across the full duration. Do not return a generic 2-week plan unless the user requested 2 weeks. Return strict JSON with: title string, overview string, roadmapScore number 0-100, phases array of {"phase":"...","duration":"...","goal":"...","topics":["..."],"projects":["..."],"resources":["..."],"checkpoints":["..."]}, weeklyPlan array of {"week":"...","focus":"...","tasks":["..."]}, milestones string[], mistakesToAvoid string[], finalProject string, interviewPrep string[].`,
     payload,
-    {
-      title: `${payload.goal} Roadmap`,
-      overview: 'A practical roadmap that starts with fundamentals, builds projects, adds production skills, and ends with interview preparation.',
-      roadmapScore: 90,
-      phases: [
-        {
-          phase: 'Foundation',
-          duration: '2 weeks',
-          goal: 'Understand the core building blocks.',
-          topics: ['HTML/CSS/JavaScript fundamentals', 'Git and GitHub', 'TypeScript basics'],
-          projects: ['Personal portfolio', 'Todo app with local storage'],
-          resources: ['MDN Web Docs', 'TypeScript Handbook'],
-          checkpoints: ['Explain async JS', 'Build reusable components'],
-        },
-        {
-          phase: 'MERN + Postgres Build',
-          duration: '4 weeks',
-          goal: 'Build production-style full-stack apps.',
-          topics: ['React routing', 'Express APIs', 'Postgres schema design', 'JWT authentication'],
-          projects: ['Auth dashboard', 'AI interview app'],
-          resources: ['React docs', 'Postgres docs', 'Express docs'],
-          checkpoints: ['Deploy frontend and backend', 'Connect database securely'],
-        },
-      ],
-      weeklyPlan: [
-        { week: 'Week 1', focus: 'Fundamentals', tasks: ['Revise JavaScript', 'Build UI components', 'Practice Git'] },
-        { week: 'Week 2', focus: 'Frontend depth', tasks: ['React Router', 'Forms', 'API integration'] },
-      ],
-      milestones: ['Build 3 deployed projects', 'Write clean README files', 'Complete 5 mock interviews'],
-      mistakesToAvoid: ['Learning without building', 'Skipping deployment', 'Ignoring database design'],
-      finalProject: 'Build a full-stack AI-powered platform with auth, database, dashboard, and AI-generated reports.',
-      interviewPrep: ['Explain every project architecture', 'Practice system design basics', 'Prepare behavioral stories'],
-    },
+    dynamicFallback,
   )
 }
