@@ -52,6 +52,142 @@ async function openRouterJson(system: string, payload: unknown, fallback: unknow
   }
 }
 
+function clampScore(value: number) {
+  return Math.max(35, Math.min(98, Math.round(value)))
+}
+
+function unique(items: string[]) {
+  return Array.from(new Set(items.filter(Boolean)))
+}
+
+function roleKeywords(targetRole = 'Software Developer') {
+  const base = ['project', 'skills', 'experience', 'education', 'github', 'deployment', 'api', 'database']
+  const role = targetRole.toLowerCase()
+  if (role.includes('full') || role.includes('mern')) {
+    return [...base, 'react', 'node', 'express', 'mongodb', 'postgres', 'typescript', 'javascript', 'rest', 'jwt', 'tailwind']
+  }
+  if (role.includes('frontend') || role.includes('react')) {
+    return [...base, 'react', 'typescript', 'javascript', 'css', 'responsive', 'state', 'routing', 'api', 'accessibility']
+  }
+  if (role.includes('backend')) {
+    return [...base, 'node', 'express', 'postgres', 'sql', 'redis', 'authentication', 'api', 'scalable', 'testing']
+  }
+  if (role.includes('data') || role.includes('ai')) {
+    return [...base, 'python', 'machine learning', 'nlp', 'model', 'data', 'pandas', 'sql', 'api', 'evaluation']
+  }
+  return base
+}
+
+function buildResumeFallback(payload: { fileName: string; resumeText: string; targetRole?: string }) {
+  const text = payload.resumeText.replace(/\s+/g, ' ').trim()
+  const lower = text.toLowerCase()
+  const words = text.split(/\s+/).filter(Boolean)
+  const sentences = text.split(/[.!?]\s+/).filter((item) => item.trim().length > 8)
+  const keywords = roleKeywords(payload.targetRole)
+  const matchedKeywords = keywords.filter((keyword) => lower.includes(keyword))
+  const missingKeywords = keywords.filter((keyword) => !lower.includes(keyword)).slice(0, 10)
+  const hasMetrics = /\b\d+(\.\d+)?\s*(%|users?|ms|sec|seconds?|minutes?|hrs?|hours?|projects?|apis?|pages?|requests?|records?)\b/i.test(text)
+  const hasLinks = /(github\.com|linkedin\.com|https?:\/\/)/i.test(text)
+  const hasSections = ['experience', 'projects', 'skills', 'education'].filter((section) => lower.includes(section))
+  const actionVerbs = ['built', 'created', 'developed', 'designed', 'implemented', 'deployed', 'optimized', 'integrated', 'managed', 'led']
+  const actionVerbCount = actionVerbs.filter((verb) => lower.includes(verb)).length
+  const weakPhrases = ['hard working', 'quick learner', 'team player', 'responsible for', 'worked on', 'basic knowledge']
+  const foundWeakPhrases = weakPhrases.filter((phrase) => lower.includes(phrase))
+  const longSentences = sentences.filter((sentence) => sentence.split(/\s+/).length > 32)
+  const repeatedSpaces = /\s{3,}/.test(payload.resumeText)
+  const grammarPenalty = foundWeakPhrases.length * 4 + longSentences.length * 2 + (repeatedSpaces ? 3 : 0)
+
+  const lengthScore = words.length < 180 ? 50 : words.length < 350 ? 70 : words.length < 850 ? 88 : 76
+  const keywordScore = (matchedKeywords.length / keywords.length) * 100
+  const sectionScore = (hasSections.length / 4) * 100
+  const impactScore = (hasMetrics ? 18 : 0) + Math.min(actionVerbCount * 7, 35) + (hasLinks ? 10 : 0) + 45
+  const atsScore = clampScore(keywordScore * 0.45 + sectionScore * 0.35 + lengthScore * 0.2)
+  const grammarScore = clampScore(90 - grammarPenalty)
+  const roleFitScore = clampScore(keywordScore * 0.55 + impactScore * 0.25 + sectionScore * 0.2)
+  const resumeScore = clampScore(atsScore * 0.32 + grammarScore * 0.22 + roleFitScore * 0.32 + impactScore * 0.14)
+
+  const corrections = [
+    !hasMetrics && {
+      issue: 'Project bullets do not show enough measurable impact.',
+      fix: 'Add numbers such as users served, performance improved, API latency reduced, or time saved.',
+      severity: 'high',
+    },
+    !hasLinks && {
+      issue: 'No clear portfolio, GitHub, LinkedIn, or deployment links were detected.',
+      fix: 'Add clickable GitHub and live project links near the header or project section.',
+      severity: 'medium',
+    },
+    hasSections.length < 4 && {
+      issue: `Missing or unclear sections: ${['experience', 'projects', 'skills', 'education'].filter((section) => !hasSections.includes(section)).join(', ')}.`,
+      fix: 'Use clear ATS-friendly headings for Experience, Projects, Skills, and Education.',
+      severity: 'medium',
+    },
+    foundWeakPhrases.length > 0 && {
+      issue: `Weak resume phrases detected: ${foundWeakPhrases.join(', ')}.`,
+      fix: 'Replace generic phrases with action verbs, technical detail, and measurable outcomes.',
+      severity: 'medium',
+    },
+  ].filter(Boolean) as Array<{ issue: string; fix: string; severity: string }>
+
+  const grammarMistakes = [
+    ...foundWeakPhrases.map((phrase) => ({
+      text: phrase,
+      suggestion: phrase === 'worked on' ? 'Built / implemented / deployed' : 'Replace with a specific achievement',
+      reason: 'Generic wording reduces confidence and does not show ownership.',
+    })),
+    ...longSentences.slice(0, 3).map((sentence) => ({
+      text: sentence.slice(0, 110),
+      suggestion: 'Split this into one concise achievement bullet.',
+      reason: 'Long bullets are harder for recruiters and ATS screeners to scan.',
+    })),
+  ]
+
+  const strengths = unique([
+    matchedKeywords.length >= 5 ? `Includes relevant ${payload.targetRole || 'role'} keywords` : '',
+    hasSections.length >= 3 ? 'Uses recognizable resume sections' : '',
+    actionVerbCount >= 3 ? 'Shows action-oriented project language' : '',
+    hasLinks ? 'Includes external proof links' : '',
+    hasMetrics ? 'Mentions measurable impact' : '',
+  ])
+
+  return {
+    resumeScore,
+    atsScore,
+    grammarScore,
+    roleFitScore,
+    summary: `This resume was analyzed against the ${payload.targetRole || 'Software Developer'} role. It matches ${matchedKeywords.length}/${keywords.length} important keywords, has ${hasSections.length}/4 core ATS sections, ${hasMetrics ? 'includes' : 'does not clearly include'} measurable impact, and ${hasLinks ? 'includes' : 'does not clearly include'} proof links.`,
+    strengths: strengths.length ? strengths : ['Has enough resume content to evaluate', 'Shows some role-relevant experience'],
+    corrections: corrections.length ? corrections : [
+      {
+        issue: 'Resume is generally readable but can be made more competitive.',
+        fix: 'Tighten bullets around action, technical stack, measurable result, and role relevance.',
+        severity: 'low',
+      },
+    ],
+    grammarMistakes: grammarMistakes.length ? grammarMistakes : [
+      {
+        text: 'No obvious repeated weak phrase detected by local analysis.',
+        suggestion: 'Still review punctuation, tense consistency, and bullet length manually.',
+        reason: 'AI grammar review should be paired with manual proofreading.',
+      },
+    ],
+    missingKeywords,
+    recommendedRewrite: [
+      `Built and deployed a ${payload.targetRole || 'software'} project using ${matchedKeywords.slice(0, 4).join(', ') || 'a modern technical stack'}, improving user workflow with measurable project outcomes.`,
+      hasMetrics
+        ? 'Rewrite strongest project bullet to start with the metric, then explain the technical implementation.'
+        : 'Add one metric to each major project bullet, such as users, latency, accuracy, time saved, or features shipped.',
+    ],
+    actionPlan: [
+      'Move the strongest role-relevant project near the top.',
+      'Add missing keywords naturally inside project and skills bullets.',
+      'Use action verbs like built, deployed, optimized, integrated, and designed.',
+      'Keep each bullet under 22 words where possible.',
+    ],
+    analysisMode: 'dynamic-local-fallback',
+  }
+}
+
 export async function generateInterviewQuestions(payload: {
   targetRole: string
   difficulty: string
@@ -242,27 +378,11 @@ export async function analyzeResume(payload: {
   resumeText: string
   targetRole?: string
 }) {
+  const dynamicFallback = buildResumeFallback(payload)
   return openRouterJson(
-    'You are an expert resume reviewer for technical hiring. Analyze the resume for the target role. Return strict JSON with: resumeScore number 0-100, atsScore number 0-100, grammarScore number 0-100, roleFitScore number 0-100, summary string, strengths string[], corrections array of {"issue":"...","fix":"...","severity":"low|medium|high"}, grammarMistakes array of {"text":"...","suggestion":"...","reason":"..."}, missingKeywords string[], recommendedRewrite string[], actionPlan string[].',
+    'You are an expert resume reviewer for technical hiring. Analyze ONLY the provided resume text for the target role. Do not give generic feedback. Scores and corrections must change based on actual resume content, missing keywords, grammar issues, project depth, measurable impact, and role fit. Return strict JSON with: resumeScore number 0-100, atsScore number 0-100, grammarScore number 0-100, roleFitScore number 0-100, summary string, strengths string[], corrections array of {"issue":"...","fix":"...","severity":"low|medium|high"}, grammarMistakes array of {"text":"...","suggestion":"...","reason":"..."}, missingKeywords string[], recommendedRewrite string[], actionPlan string[].',
     payload,
-    {
-      resumeScore: 78,
-      atsScore: 74,
-      grammarScore: 82,
-      roleFitScore: 76,
-      summary: 'Resume has a solid technical base but needs stronger measurable impact, cleaner grammar, and tighter alignment with the target role.',
-      strengths: ['Clear project experience', 'Relevant full-stack keywords', 'Good education and skills structure'],
-      corrections: [
-        { issue: 'Project bullets describe work but not measurable impact.', fix: 'Add metrics such as latency reduced, users served, or time saved.', severity: 'high' },
-        { issue: 'Skills section is broad.', fix: 'Group skills by Frontend, Backend, Database, AI, Tools.', severity: 'medium' },
-      ],
-      grammarMistakes: [
-        { text: 'Worked on project which is used...', suggestion: 'Built a project that is used...', reason: 'More direct and professional phrasing.' },
-      ],
-      missingKeywords: ['REST APIs', 'PostgreSQL', 'Authentication', 'Deployment', 'Testing'],
-      recommendedRewrite: ['Built a full-stack interview platform using React, Express, PostgreSQL, and OpenRouter AI with JWT authentication and AI-generated candidate reports.'],
-      actionPlan: ['Add quantified impact to each project', 'Move strongest project to the top', 'Add deployment links and GitHub links'],
-    },
+    dynamicFallback,
   )
 }
 

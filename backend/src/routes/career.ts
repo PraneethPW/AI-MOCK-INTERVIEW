@@ -56,7 +56,12 @@ router.post('/resume/analyze', upload.single('resume'), async (req, res) => {
     targetRole,
   })
 
-  res.json(result)
+  res.json({
+    ...(typeof result === 'object' && result ? result : {}),
+    sourceFile: req.file?.originalname || 'pasted-resume',
+    extractedCharacters: resumeText.length,
+    resumePreview: resumeText.slice(0, 180),
+  })
 })
 
 router.post('/roadmap/generate', async (req, res) => {

@@ -14,6 +14,10 @@ type ResumeResult = {
   missingKeywords: string[]
   recommendedRewrite: string[]
   actionPlan: string[]
+  sourceFile?: string
+  extractedCharacters?: number
+  resumePreview?: string
+  analysisMode?: string
 }
 
 function ScoreCard({ label, value }: { label: string; value: number }) {
@@ -123,6 +127,10 @@ export function ResumePage() {
                 <h2 className="text-xl font-black">Summary</h2>
               </div>
               <p className="mt-4 leading-7 text-white/70">{result.summary}</p>
+              <div className="mt-4 rounded-lg bg-ink/70 p-3 text-xs font-bold leading-5 text-white/55">
+                <p>Source: {result.sourceFile || 'resume.docx'} • Extracted: {result.extractedCharacters || 0} characters</p>
+                {result.resumePreview && <p className="mt-2 text-white/70">{result.resumePreview}...</p>}
+              </div>
               <div className="mt-5 flex flex-wrap gap-2">{result.strengths?.map((item) => <span key={item} className="rounded-md bg-mint/10 px-2 py-1 text-xs font-black">{item}</span>)}</div>
             </article>
 
